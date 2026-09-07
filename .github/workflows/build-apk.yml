@@ -29,7 +29,7 @@ jobs:
         working-directory: extracted/akiro-anime-kotlin
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace "-PTMDB_API_KEY=${TMDB_API_KEY}"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
