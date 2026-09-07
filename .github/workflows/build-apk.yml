@@ -1,0 +1,38 @@
+name: Build Akiro Anime APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: unzip -o akiro-anime-kotlin.zip -d extracted
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK
+        working-directory: extracted/akiro-anime-kotlin
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: gradle assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: akiro-anime-debug-apk
+          path: extracted/akiro-anime-kotlin/app/build/outputs/apk/debug/app-debug.apk
