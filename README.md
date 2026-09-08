@@ -91,7 +91,7 @@ Torrentio é um addon de descoberta de streams; ele não é o motor BitTorrent. 
 
 
 ## Build no GitHub Actions
-O workflow `.github/workflows/build-apk.yml` compila diretamente o projeto na raiz.
+O workflow `.github/workflows/build-apk.yml` compila diretamente o projeto na raiz usando Gradle 8.7 e JDK 17.
 O APK de debug é publicado como artifact `akiro-anime-debug-apk`.
 
 ## Requisitos do streaming
