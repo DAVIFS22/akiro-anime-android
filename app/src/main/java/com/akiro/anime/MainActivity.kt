@@ -2,6 +2,7 @@ package com.akiro.anime
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,7 @@ import com.akiro.anime.ui.screens.home.HomeScreen
 import com.akiro.anime.ui.screens.player.PlayerScreen
 import com.akiro.anime.ui.screens.search.SearchScreen
 import com.akiro.anime.ui.theme.AkiroAnimeTheme
+import com.akiro.anime.navigation.safeNavigate
 
 private sealed class BottomDestination(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : BottomDestination("home", "Início", Icons.Filled.Home)
@@ -69,13 +71,13 @@ fun AkiroApp() {
             modifier = Modifier.padding(padding)
         ) {
             composable(BottomDestination.Home.route) {
-                HomeScreen(onAnimeClick = { animeId -> navController.navigate("detail/$animeId") })
+                HomeScreen(onAnimeClick = { animeId -> navController.safeNavigate("detail", animeId) })
             }
             composable(BottomDestination.Search.route) {
-                SearchScreen(onAnimeClick = { animeId -> navController.navigate("detail/$animeId") })
+                SearchScreen(onAnimeClick = { animeId -> navController.safeNavigate("detail", animeId) })
             }
             composable(BottomDestination.Favorites.route) {
-                FavoritesScreen(onAnimeClick = { animeId -> navController.navigate("detail/$animeId") })
+                FavoritesScreen(onAnimeClick = { animeId -> navController.safeNavigate("detail", animeId) })
             }
             composable(
                 "detail/{animeId}",
@@ -85,18 +87,19 @@ fun AkiroApp() {
                 AnimeDetailScreen(
                     animeId = animeId,
                     onEpisodeClick = { episode, streamUrl ->
-                        // Use Uri.encode to safely encode path segments (spaces -> %20) so NavController treats this as a route, not a deep link
-                        val encodedTitle = Uri.encode(episode.title)
-                        val encodedUrl = Uri.encode(streamUrl ?: "")
-                        val route = "player/$encodedTitle/$encodedUrl"
-                        try {
-                            navController.navigate(route)
-                        } catch (e: IllegalArgumentException) {
-                            // Fallback: try navigating to player with only title
-                            android.util.Log.e("NavError", "Invalid navigation route: $route", e)
-                            val fallback = "player/$encodedTitle/${Uri.encode("")}" 
-                            try { navController.navigate(fallback) } catch (_: Exception) {}
+                        // Log the click to help diagnose navigation issues and bad stream values
+                        val titleRaw = episode.title ?: ""
+                        val streamRaw = streamUrl ?: ""
+                        Log.d("NavDebug", "onEpisodeClick title=$titleRaw streamUrl=$streamRaw")
+
+                        // Basic validation of stream URL/magnet: allow empty, http(s), or magnet: schemes
+                        val isValidStream = streamRaw.isBlank() || streamRaw.startsWith("http://") || streamRaw.startsWith("https://") || streamRaw.startsWith("magnet:")
+                        if (!isValidStream) {
+                            Log.w("NavDebug", "Invalid stream format detected, falling back to empty stream. streamRaw=$streamRaw")
                         }
+
+                        // Use safeNavigate helper which encodes params and guards navigate calls
+                        navController.safeNavigate("player", titleRaw, if (isValidStream) streamRaw else "")
                     }
                 )
             }
