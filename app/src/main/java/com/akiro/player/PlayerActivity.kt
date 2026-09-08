@@ -5,14 +5,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.ui.PlayerView
 import com.akiro.torrent.TorrentEngine
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * PlayerActivity: extended to support magnet links using TorrentEngine (jlibtorrent) + LocalHttpServer.
@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 class PlayerActivity : AppCompatActivity() {
     private var player: ExoPlayer? = null
     private var playerView: PlayerView? = null
-    private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var torrentEngine: TorrentEngine? = null
 
@@ -38,10 +37,17 @@ class PlayerActivity : AppCompatActivity() {
             initializePlayer(streamUrl)
         } else if (!magnet.isNullOrEmpty()) {
             // start torrent engine and wait for local url
-            scope.launch {
+            lifecycleScope.launch {
                 try {
-                    torrentEngine = TorrentEngine(applicationContext)
-                    val localUrl = torrentEngine?.startTorrentAndGetLocalUrl(magnet)
+                    // Run blocking/torrent startup on IO dispatcher and capture engine + localUrl
+                    val (eng, localUrl) = withContext(Dispatchers.IO) {
+                        val e = TorrentEngine(applicationContext)
+                        val url = try { e.startTorrentAndGetLocalUrl(magnet) } catch (t: Throwable) { Log.e("PlayerActivity", "torrent engine failed to start/get url", t); null }
+                        Pair(e, url)
+                    }
+
+                    torrentEngine = eng
+
                     if (!localUrl.isNullOrEmpty()) {
                         initializePlayer(localUrl)
                     } else {
@@ -69,13 +75,26 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        player?.release()
-        player = null
-        scope.launch(Dispatchers.IO) {
+        try {
+            // detach player from view first to avoid leaks
+            playerView?.player = null
+            player?.release()
+            player = null
+        } catch (e: Exception) {
+            Log.e("PlayerActivity", "error releasing player", e)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // ensure torrent engine is stopped on background thread
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 torrentEngine?.stop()
             } catch (e: Exception) {
                 Log.e("PlayerActivity", "error stopping torrent engine", e)
+            } finally {
+                torrentEngine = null
             }
         }
     }
