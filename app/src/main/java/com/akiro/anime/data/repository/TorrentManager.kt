@@ -93,7 +93,7 @@ class TorrentManager(private val context: Context) {
                     "O torrent não contém um arquivo de vídeo compatível."
                 }
 
-                priorities[videoIndex] = Priority.NORMAL
+                priorities[videoIndex] = Priority.IGNORE
 
                 // Add only the selected video to the download queue.
                 session.download(
@@ -120,7 +120,15 @@ class TorrentManager(private val context: Context) {
 
                 // Sequential mode makes the beginning of the selected file the
                 // first useful data to arrive, which is important for playback.
-                th.setSequentialDownload(true)
+                try {
+                    th.pause()
+                    val flags = th.flags()
+                    flags.or(torrent_flags_t.sequential_download)
+                    th.setFlags(flags)
+                    th.resume()
+                } catch (_: Throwable) {
+                    // Fallback if sequential download is not supported in this libtorrent version
+                }
                 handle = th
 
                 val relativePath = info.files().filePath(videoIndex)
