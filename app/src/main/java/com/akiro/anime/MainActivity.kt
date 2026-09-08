@@ -1,5 +1,6 @@
 package com.akiro.anime
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,8 +34,6 @@ import com.akiro.anime.ui.screens.home.HomeScreen
 import com.akiro.anime.ui.screens.player.PlayerScreen
 import com.akiro.anime.ui.screens.search.SearchScreen
 import com.akiro.anime.ui.theme.AkiroAnimeTheme
-import java.net.URLDecoder
-import java.net.URLEncoder
 
 private sealed class BottomDestination(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : BottomDestination("home", "Início", Icons.Filled.Home)
@@ -86,9 +85,18 @@ fun AkiroApp() {
                 AnimeDetailScreen(
                     animeId = animeId,
                     onEpisodeClick = { episode, streamUrl ->
-                        val encodedTitle = URLEncoder.encode(episode.title, "UTF-8")
-                        val encodedUrl = URLEncoder.encode(streamUrl ?: "", "UTF-8")
-                        navController.navigate("player/$encodedTitle/$encodedUrl")
+                        // Use Uri.encode to safely encode path segments (spaces -> %20) so NavController treats this as a route, not a deep link
+                        val encodedTitle = Uri.encode(episode.title)
+                        val encodedUrl = Uri.encode(streamUrl ?: "")
+                        val route = "player/$encodedTitle/$encodedUrl"
+                        try {
+                            navController.navigate(route)
+                        } catch (e: IllegalArgumentException) {
+                            // Fallback: try navigating to player with only title
+                            android.util.Log.e("NavError", "Invalid navigation route: $route", e)
+                            val fallback = "player/$encodedTitle/${Uri.encode("")}" 
+                            try { navController.navigate(fallback) } catch (_: Exception) {}
+                        }
                     }
                 )
             }
@@ -99,8 +107,8 @@ fun AkiroApp() {
                     navArgument("streamUrl") { type = NavType.StringType },
                 )
             ) { backStackEntry ->
-                val title = URLDecoder.decode(backStackEntry.arguments?.getString("title") ?: "", "UTF-8")
-                val streamUrlRaw = URLDecoder.decode(backStackEntry.arguments?.getString("streamUrl") ?: "", "UTF-8")
+                val title = Uri.decode(backStackEntry.arguments?.getString("title") ?: "")
+                val streamUrlRaw = Uri.decode(backStackEntry.arguments?.getString("streamUrl") ?: "")
                 PlayerScreen(streamUrl = streamUrlRaw.ifBlank { null }, title = title)
             }
         }
