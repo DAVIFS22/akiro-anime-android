@@ -19,6 +19,7 @@ import com.akiro.anime.data.repository.TorrentManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     streamUrl: String?,
