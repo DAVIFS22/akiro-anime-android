@@ -122,9 +122,12 @@ class TorrentManager(private val context: Context) {
                 // first useful data to arrive, which is important for playback.
                 try {
                     th.pause()
-                    val flags = th.flags()
-                    flags.or(torrent_flags_t.sequential_download)
-                    th.setFlags(flags)
+                    // Attempt to set sequential download flag (bit 0x1)
+                    // Using bitwise OR with a safe integer-based approach
+                    val currentFlags = th.flags().swigValue().toLong()
+                    val sequentialFlag = 0x1L
+                    val newFlags = currentFlags or sequentialFlag
+                    th.setFlags(torrent_flags_t.from_int(newFlags.toInt()))
                     th.resume()
                 } catch (_: Throwable) {
                     // Fallback if sequential download is not supported in this libtorrent version
