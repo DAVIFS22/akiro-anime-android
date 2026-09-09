@@ -1,0 +1,27 @@
+name: Sync Akiro catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync catalog and sources
+        env:
+          AKIRO_API_BASE_URL: ${{ secrets.AKIRO_API_BASE_URL }}
+          AKIRO_ADMIN_TOKEN: ${{ secrets.AKIRO_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$AKIRO_API_BASE_URL"
+          test -n "$AKIRO_ADMIN_TOKEN"
+          curl --fail --show-error --silent \
+            -X POST "$AKIRO_API_BASE_URL/v1/admin/sync/all" \
+            -H "Authorization: Bearer $AKIRO_ADMIN_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"pages":5,"perPage":20,"language":"pt-BR","sourceLimit":1000}'
