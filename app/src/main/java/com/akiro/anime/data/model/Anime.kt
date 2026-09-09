@@ -53,7 +53,7 @@ data class Anime(
     val poster: String,
     val banner: String,
     val backdrop: String? = null,
-    val genres: List<String> = emptyList(),
+    val genres: List<Genre> = emptyList(),
     val year: Int,
     val status: AnimeStatus,
     val type: AnimeType,
