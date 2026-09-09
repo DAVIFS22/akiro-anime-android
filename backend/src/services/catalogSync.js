@@ -25,7 +25,6 @@ async function tmdb(path, params = {}) {
   }
 
   // Primeiro tenta o TMDB Read Access Token.
-  // O TMDB aceita Bearer Token na API v3.
   if (bearer) {
     const response = await fetch(url, {
       headers: {
@@ -133,7 +132,7 @@ async function upsertAnime(show, details) {
     VALUES(
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
       $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-      $21,$22,$23,$24
+      $21,$22
     )
     ON CONFLICT(tmdb_id) DO UPDATE SET
       title=EXCLUDED.title,
@@ -262,7 +261,7 @@ async function syncSeasonsAndEpisodes(
         INSERT INTO episodes(
           anime_id,
           season_id,
-          number,
+          episode_number,
           title,
           thumbnail,
           duration,
@@ -273,7 +272,7 @@ async function syncSeasonsAndEpisodes(
         ON CONFLICT(
           anime_id,
           season_id,
-          number
+          episode_number
         )
         DO UPDATE SET
           title=EXCLUDED.title,
@@ -346,12 +345,6 @@ export async function syncCatalog({
     .toISOString()
     .slice(0, 10);
 
-  // Primeira busca:
-  // animes mais populares.
-  //
-  // Segunda busca:
-  // animes que começaram a ser exibidos
-  // recentemente.
   const passes = [
     {
       sort_by: 'popularity.desc'
@@ -375,14 +368,8 @@ export async function syncCatalog({
           language,
           page,
           sort_by: pass.sort_by,
-
-          // Animação.
           with_genres: '16',
-
           include_adult: false,
-
-          // Mantém o catálogo focado
-          // em animações originalmente japonesas.
           with_original_language: 'ja',
 
           ...(pass['air_date.gte']
