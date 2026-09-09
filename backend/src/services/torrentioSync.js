@@ -100,7 +100,7 @@ export async function syncTorrentioSources({ limit = 500, delayMs = 150 } = {}) 
   }
 
   const episodes = await query(`
-  e.number AS episode_number
+ e.episode_number AS episode_number
     FROM episodes e
     JOIN animes a ON a.id=e.anime_id
     LEFT JOIN seasons s ON s.id=e.season_id
