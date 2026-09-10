@@ -1,6 +1,11 @@
 package com.akiro.anime.network
 
-import com.akiro.anime.data.model.Genre
+import com.google.gson.TypeAdapter
+import com.google.gson.JsonToken
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import java.io.IOException
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -14,29 +19,19 @@ interface AkiroApi {
     suspend fun home(): HomeDto
 
     @GET("v1/animes/trending")
-    suspend fun trending(
-        @Query("limit") limit: Int = 30
-    ): AnimeListDto
+    suspend fun trending(@Query("limit") limit: Int = 30): AnimeListDto
 
     @GET("v1/animes/popular")
-    suspend fun popular(
-        @Query("limit") limit: Int = 30
-    ): AnimeListDto
+    suspend fun popular(@Query("limit") limit: Int = 30): AnimeListDto
 
     @GET("v1/animes/recent")
-    suspend fun recent(
-        @Query("limit") limit: Int = 30
-    ): AnimeListDto
+    suspend fun recent(@Query("limit") limit: Int = 30): AnimeListDto
 
     @GET("v1/animes/search")
-    suspend fun search(
-        @Query("q") query: String
-    ): AnimeListDto
+    suspend fun search(@Query("q") query: String): AnimeListDto
 
     @GET("v1/animes/{id}")
-    suspend fun getAnime(
-        @Path("id") id: Int
-    ): AnimeDto
+    suspend fun getAnime(@Path("id") id: Int): AnimeDto
 
     @GET("v1/animes/{animeId}/seasons/{season}/episodes")
     suspend fun getEpisodes(
@@ -113,14 +108,11 @@ data class AnimeDto(
     val native_title: String? = null,
 
     val synopsis: String = "",
-
     val poster: String = "",
     val banner: String = "",
     val backdrop: String? = null,
 
-    // A API retorna gêneros como objetos:
-    // [{"id": 1, "name": "Action"}]
-    val genres: List<Genre> = emptyList(),
+    val genres: List<com.akiro.anime.data.model.Genre> = emptyList(),
 
     val year: Int = 0,
     val status: String = "UNKNOWN",
@@ -128,9 +120,25 @@ data class AnimeDto(
 
     val rating: Double = 0.0,
     val rating_score_count: Int? = null,
-
     val age_rating: String = "14+",
 
+    /*
+     * A API pode retornar:
+     *
+     * "studios": ["MAPPA"]
+     *
+     * ou:
+     *
+     * "studios": [
+     *   {
+     *     "id": 1,
+     *     "name": "MAPPA"
+     *   }
+     * ]
+     *
+     * O adapter transforma os dois formatos em List<String>.
+     */
+    @JsonAdapter(StudioListAdapter::class)
     val studios: List<String> = emptyList(),
 
     val total_episodes: Int = 0,
@@ -217,3 +225,128 @@ data class HistoryItemDto(
 data class HistoryListDto(
     val items: List<HistoryItemDto> = emptyList()
 )
+
+/**
+ * Converte studios em diferentes formatos para List<String>.
+ *
+ * Aceita:
+ *
+ * ["MAPPA", "Wit Studio"]
+ *
+ * e:
+ *
+ * [
+ *   {"id": 1, "name": "MAPPA"},
+ *   {"id": 2, "name": "Wit Studio"}
+ * ]
+ *
+ * Também aceita objetos contendo "title".
+ */
+class StudioListAdapter : TypeAdapter<List<String>>() {
+
+    @Throws(IOException::class)
+    override fun read(
+        reader: JsonReader
+    ): List<String> {
+
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull()
+            return emptyList()
+        }
+
+        if (reader.peek() != JsonToken.BEGIN_ARRAY) {
+            reader.skipValue()
+            return emptyList()
+        }
+
+        val result = mutableListOf<String>()
+
+        reader.beginArray()
+
+        while (reader.hasNext()) {
+
+            when (reader.peek()) {
+
+                JsonToken.STRING -> {
+                    val value = reader
+                        .nextString()
+                        .trim()
+
+                    if (value.isNotEmpty()) {
+                        result.add(value)
+                    }
+                }
+
+                JsonToken.BEGIN_OBJECT -> {
+
+                    var name: String? = null
+
+                    reader.beginObject()
+
+                    while (reader.hasNext()) {
+
+                        when (reader.nextName()) {
+
+                            "name",
+                            "title" -> {
+
+                                if (
+                                    reader.peek() ==
+                                    JsonToken.STRING
+                                ) {
+                                    name = reader
+                                        .nextString()
+                                        .trim()
+                                } else {
+                                    reader.skipValue()
+                                }
+                            }
+
+                            else -> {
+                                reader.skipValue()
+                            }
+                        }
+                    }
+
+                    reader.endObject()
+
+                    if (!name.isNullOrBlank()) {
+                        result.add(name)
+                    }
+                }
+
+                JsonToken.NULL -> {
+                    reader.nextNull()
+                }
+
+                else -> {
+                    reader.skipValue()
+                }
+            }
+        }
+
+        reader.endArray()
+
+        return result
+    }
+
+    @Throws(IOException::class)
+    override fun write(
+        writer: JsonWriter,
+        value: List<String>?
+    ) {
+
+        if (value == null) {
+            writer.nullValue()
+            return
+        }
+
+        writer.beginArray()
+
+        value.forEach { studio ->
+            writer.value(studio)
+        }
+
+        writer.endArray()
+    }
+}
