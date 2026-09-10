@@ -65,8 +65,7 @@ fun AnimeDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    state.error
-                        ?: "Não foi possível carregar o anime"
+                    state.error ?: "Não foi possível carregar o anime"
                 )
             }
         }
@@ -319,12 +318,10 @@ fun AnimeDetailScreen(
 
                         Text(
                             "Temporadas",
-                            style =
-                                MaterialTheme.typography.titleLarge,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = 16.dp
-                                )
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp
+                            )
                         )
 
                         Spacer(
@@ -602,4 +599,8 @@ private fun EpisodeRow(
 
             IconButton(
                 onClick = onClick,
-        
+                enabled = enabled
+            ) {
+
+                Icon(
+                    Icons.Fille
