@@ -9,7 +9,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,7 +56,7 @@ fun AnimeDetailScreen(
     when {
         state.isLoading -> {
             Box(
-                Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -61,11 +65,12 @@ fun AnimeDetailScreen(
 
         state.anime == null -> {
             Box(
-                Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    state.error ?: "Não foi possível carregar o anime"
+                    state.error
+                        ?: "Não foi possível carregar o anime"
                 )
             }
         }
@@ -74,12 +79,15 @@ fun AnimeDetailScreen(
             val anime = state.anime!!
 
             LazyColumn(
-                Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
 
+                /*
+                 * HEADER
+                 */
                 item {
                     Box(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(370.dp)
                     ) {
@@ -92,12 +100,12 @@ fun AnimeDetailScreen(
                         )
 
                         Box(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .background(
                                     Brush.verticalGradient(
                                         listOf(
-                                            Color.Black.copy(.10f),
+                                            Color.Black.copy(alpha = 0.10f),
                                             Color.Transparent,
                                             MaterialTheme.colorScheme.background
                                         )
@@ -106,12 +114,12 @@ fun AnimeDetailScreen(
                         )
 
                         Box(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
                                         listOf(
-                                            Color.Black.copy(.55f),
+                                            Color.Black.copy(alpha = 0.55f),
                                             Color.Transparent
                                         )
                                     )
@@ -119,7 +127,7 @@ fun AnimeDetailScreen(
                         )
 
                         Row(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .statusBarsPadding()
                                 .padding(8.dp),
@@ -128,61 +136,68 @@ fun AnimeDetailScreen(
 
                             SmallFloatingActionButton(
                                 onClick = onBack,
-                                containerColor = Color.Black.copy(.55f),
+                                containerColor =
+                                    Color.Black.copy(alpha = 0.55f),
                                 contentColor = Color.White
                             ) {
                                 Icon(
-                                    Icons.Filled.ArrowBack,
-                                    "Voltar"
+                                    imageVector = Icons.Filled.ArrowBack,
+                                    contentDescription = "Voltar"
                                 )
                             }
 
                             Spacer(
-                                Modifier.weight(1f)
+                                modifier = Modifier.weight(1f)
                             )
 
                             SmallFloatingActionButton(
                                 onClick = {
                                     viewModel.toggleFavorite()
                                 },
-                                containerColor = Color.Black.copy(.55f),
+                                containerColor =
+                                    Color.Black.copy(alpha = 0.55f),
                                 contentColor = Color.White
                             ) {
                                 Icon(
-                                    if (state.isFavorite)
-                                        Icons.Filled.Favorite
-                                    else
-                                        Icons.Filled.FavoriteBorder,
-                                    "Favoritar"
+                                    imageVector =
+                                        if (state.isFavorite) {
+                                            Icons.Filled.Favorite
+                                        } else {
+                                            Icons.Filled.FavoriteBorder
+                                        },
+                                    contentDescription = "Favoritar"
                                 )
                             }
                         }
 
                         Column(
-                            Modifier
+                            modifier = Modifier
                                 .align(Alignment.BottomStart)
                                 .padding(18.dp)
                         ) {
 
                             Text(
-                                anime.title,
+                                text = anime.title,
                                 color = Color.White,
-                                style = MaterialTheme.typography.headlineLarge,
+                                style =
+                                    MaterialTheme.typography.headlineLarge,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
 
                             Text(
-                                anime.nativeTitle
-                                    ?: anime.romajiTitle
-                                    ?: "",
-                                color = Color.White.copy(.70f),
-                                style = MaterialTheme.typography.bodySmall,
+                                text =
+                                    anime.nativeTitle
+                                        ?: anime.romajiTitle
+                                        ?: "",
+                                color = Color.White.copy(alpha = 0.70f),
+                                style =
+                                    MaterialTheme.typography.bodySmall,
                                 maxLines = 1
                             )
 
                             Spacer(
-                                Modifier.height(8.dp)
+                                modifier = Modifier.height(8.dp)
                             )
 
                             Row(
@@ -191,20 +206,23 @@ fun AnimeDetailScreen(
                             ) {
 
                                 MetaPill(
-                                    "★ ${"%.1f".format(anime.rating)}"
+                                    text =
+                                        "★ ${
+                                            "%.1f".format(anime.rating)
+                                        }"
                                 )
 
                                 MetaPill(
-                                    anime.year.toString()
+                                    text = anime.year.toString()
                                 )
 
                                 MetaPill(
-                                    anime.type.label
+                                    text = anime.type.label
                                 )
 
                                 if (anime.ageRating.isNotBlank()) {
                                     MetaPill(
-                                        anime.ageRating
+                                        text = anime.ageRating
                                     )
                                 }
                             }
@@ -212,9 +230,12 @@ fun AnimeDetailScreen(
                     }
                 }
 
+                /*
+                 * ACTIONS
+                 */
                 item {
                     Row(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         horizontalArrangement =
@@ -233,19 +254,21 @@ fun AnimeDetailScreen(
                         ) {
 
                             Icon(
-                                Icons.Filled.PlayArrow,
-                                null
+                                imageVector = Icons.Filled.PlayArrow,
+                                contentDescription = null
                             )
 
                             Spacer(
-                                Modifier.width(6.dp)
+                                modifier = Modifier.width(6.dp)
                             )
 
                             Text(
-                                if (state.streamLoading)
-                                    "Buscando…"
-                                else
-                                    "Assistir agora"
+                                text =
+                                    if (state.streamLoading) {
+                                        "Buscando…"
+                                    } else {
+                                        "Assistir agora"
+                                    }
                             )
                         }
 
@@ -257,16 +280,21 @@ fun AnimeDetailScreen(
                         ) {
 
                             Icon(
-                                if (state.isFavorite)
-                                    Icons.Filled.Favorite
-                                else
-                                    Icons.Filled.BookmarkBorder,
-                                "Salvar"
+                                imageVector =
+                                    if (state.isFavorite) {
+                                        Icons.Filled.Favorite
+                                    } else {
+                                        Icons.Filled.BookmarkBorder
+                                    },
+                                contentDescription = "Salvar"
                             )
                         }
                     }
                 }
 
+                /*
+                 * GENRES + SYNOPSIS
+                 */
                 item {
 
                     if (anime.genres.isNotEmpty()) {
@@ -283,7 +311,9 @@ fun AnimeDetailScreen(
                                 AssistChip(
                                     onClick = {},
                                     label = {
-                                        Text(genre.name)
+                                        Text(
+                                            text = genre.name
+                                        )
                                     }
                                 )
                             }
@@ -291,23 +321,29 @@ fun AnimeDetailScreen(
                     }
 
                     Spacer(
-                        Modifier.height(12.dp)
+                        modifier = Modifier.height(12.dp)
                     )
 
                     Text(
-                        anime.synopsis,
+                        text = anime.synopsis,
                         modifier = Modifier.padding(
                             horizontal = 16.dp
                         ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style =
+                            MaterialTheme.typography.bodyMedium,
+                        color =
+                            MaterialTheme.colorScheme
+                                .onSurfaceVariant
                     )
 
                     Spacer(
-                        Modifier.height(18.dp)
+                        modifier = Modifier.height(18.dp)
                     )
                 }
 
+                /*
+                 * SEASONS
+                 */
                 if (
                     anime.seasons.any {
                         it.seasonNumber > 0
@@ -317,15 +353,16 @@ fun AnimeDetailScreen(
                     item {
 
                         Text(
-                            "Temporadas",
-                            style = MaterialTheme.typography.titleLarge,
+                            text = "Temporadas",
+                            style =
+                                MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(
                                 horizontal = 16.dp
                             )
                         )
 
                         Spacer(
-                            Modifier.height(8.dp)
+                            modifier = Modifier.height(8.dp)
                         )
 
                         LazyRow(
@@ -354,22 +391,27 @@ fun AnimeDetailScreen(
                                     },
 
                                     label = {
-                                        Text(season.name)
+                                        Text(
+                                            text = season.name
+                                        )
                                     }
                                 )
                             }
                         }
 
                         Spacer(
-                            Modifier.height(16.dp)
+                            modifier = Modifier.height(16.dp)
                         )
                     }
                 }
 
+                /*
+                 * EPISODES HEADER
+                 */
                 item {
 
                     Row(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         verticalAlignment =
@@ -377,7 +419,9 @@ fun AnimeDetailScreen(
                     ) {
 
                         Text(
-                            "Episódios da temporada ${state.selectedSeason}",
+                            text =
+                                "Episódios da temporada " +
+                                    state.selectedSeason,
                             style =
                                 MaterialTheme.typography.titleLarge,
                             modifier =
@@ -385,42 +429,51 @@ fun AnimeDetailScreen(
                         )
 
                         Text(
-                            "${state.episodes.size}",
+                            text =
+                                state.episodes.size.toString(),
                             color =
                                 MaterialTheme.colorScheme
                                     .onSurfaceVariant
                         )
                     }
 
+                    /*
+                     * STREAM LOADING
+                     */
                     if (state.streamLoading) {
 
                         Spacer(
-                            Modifier.height(10.dp)
+                            modifier = Modifier.height(10.dp)
                         )
 
                         LinearProgressIndicator(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         )
 
                         Text(
-                            "Consultando o Torrentio e procurando a melhor fonte…",
+                            text =
+                                "Consultando o Torrentio e procurando " +
+                                    "a melhor fonte…",
                             color =
                                 MaterialTheme.colorScheme.primary,
                             style =
                                 MaterialTheme.typography.bodySmall,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = 16.dp,
-                                    vertical = 7.dp
-                                )
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 7.dp
+                            )
                         )
                     }
 
-                    state.streamError?.let {
+                    /*
+                     * STREAM ERROR
+                     */
+                    state.streamError?.let { error ->
+
                         Text(
-                            it,
+                            text = error,
                             color =
                                 MaterialTheme.colorScheme.error,
                             modifier =
@@ -429,12 +482,15 @@ fun AnimeDetailScreen(
                     }
 
                     Spacer(
-                        Modifier.height(6.dp)
+                        modifier = Modifier.height(6.dp)
                     )
                 }
 
+                /*
+                 * EPISODES
+                 */
                 items(
-                    state.episodes,
+                    items = state.episodes,
                     key = {
                         "${it.seasonNumber}-${it.number}"
                     }
@@ -451,7 +507,7 @@ fun AnimeDetailScreen(
 
                 item {
                     Spacer(
-                        Modifier.height(28.dp)
+                        modifier = Modifier.height(28.dp)
                     )
                 }
             }
@@ -459,19 +515,23 @@ fun AnimeDetailScreen(
     }
 }
 
+/*
+ * META PILL
+ */
 @Composable
 private fun MetaPill(
     text: String
 ) {
     Surface(
-        color = Color.Black.copy(.45f),
+        color = Color.Black.copy(alpha = 0.45f),
         shape = RoundedCornerShape(8.dp)
     ) {
 
         Text(
-            text,
+            text = text,
             color = Color.White,
-            style = MaterialTheme.typography.labelSmall,
+            style =
+                MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(
                 horizontal = 8.dp,
                 vertical = 5.dp
@@ -480,6 +540,9 @@ private fun MetaPill(
     }
 }
 
+/*
+ * EPISODE ROW
+ */
 @Composable
 private fun EpisodeRow(
     episode: Episode,
@@ -488,7 +551,7 @@ private fun EpisodeRow(
 ) {
 
     Card(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(
                 horizontal = 16.dp,
@@ -502,13 +565,16 @@ private fun EpisodeRow(
     ) {
 
         Row(
-            Modifier.padding(8.dp),
+            modifier = Modifier.padding(8.dp),
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
 
+            /*
+             * THUMBNAIL
+             */
             Box(
-                Modifier
+                modifier = Modifier
                     .size(
                         width = 120.dp,
                         height = 68.dp
@@ -516,91 +582,4 @@ private fun EpisodeRow(
                     .clip(
                         RoundedCornerShape(10.dp)
                     )
-            ) {
-
-                AsyncImage(
-                    model = episode.thumbnail,
-                    contentDescription =
-                        episode.title,
-                    contentScale =
-                        ContentScale.Crop,
-                    modifier =
-                        Modifier.fillMaxSize()
-                )
-
-                Surface(
-                    Modifier.align(
-                        Alignment.Center
-                    ),
-                    color =
-                        Color.Black.copy(.60f),
-                    shape =
-                        RoundedCornerShape(50.dp)
-                ) {
-
-                    IconButton(
-                        onClick = onClick,
-                        enabled = enabled
-                    ) {
-
-                        Icon(
-                            Icons.Filled.PlayArrow,
-                            "Assistir",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-
-            Spacer(
-                Modifier.width(11.dp)
-            )
-
-            Column(
-                Modifier.weight(1f)
-            ) {
-
-                Text(
-                    "${episode.number}. ${episode.title}",
-                    fontWeight =
-                        FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow =
-                        TextOverflow.Ellipsis
-                )
-
-                Text(
-                    if (episode.duration > 0)
-                        "${episode.duration / 60} min"
-                    else
-                        "Episódio ${episode.number}",
-                    color =
-                        MaterialTheme.colorScheme
-                            .onSurfaceVariant,
-                    style =
-                        MaterialTheme.typography.labelSmall
-                )
-
-                episode.description?.let {
-
-                    Text(
-                        it,
-                        color =
-                            MaterialTheme.colorScheme
-                                .onSurfaceVariant,
-                        style =
-                            MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow =
-                            TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            IconButton(
-                onClick = onClick,
-                enabled = enabled
-            ) {
-
-                Icon(
-                    Icons.Fille
+  
