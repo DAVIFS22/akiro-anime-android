@@ -9,23 +9,34 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AkiroApi {
+
     @GET("v1/home")
     suspend fun home(): HomeDto
 
     @GET("v1/animes/trending")
-    suspend fun trending(@Query("limit") limit: Int = 30): AnimeListDto
+    suspend fun trending(
+        @Query("limit") limit: Int = 30
+    ): AnimeListDto
 
     @GET("v1/animes/popular")
-    suspend fun popular(@Query("limit") limit: Int = 30): AnimeListDto
+    suspend fun popular(
+        @Query("limit") limit: Int = 30
+    ): AnimeListDto
 
     @GET("v1/animes/recent")
-    suspend fun recent(@Query("limit") limit: Int = 30): AnimeListDto
+    suspend fun recent(
+        @Query("limit") limit: Int = 30
+    ): AnimeListDto
 
     @GET("v1/animes/search")
-    suspend fun search(@Query("q") query: String): AnimeListDto
+    suspend fun search(
+        @Query("q") query: String
+    ): AnimeListDto
 
     @GET("v1/animes/{id}")
-    suspend fun getAnime(@Path("id") id: Int): AnimeDto
+    suspend fun getAnime(
+        @Path("id") id: Int
+    ): AnimeDto
 
     @GET("v1/animes/{animeId}/seasons/{season}/episodes")
     suspend fun getEpisodes(
@@ -39,19 +50,27 @@ interface AkiroApi {
     ): SourceListDto
 
     @POST("v1/auth/login")
-    suspend fun login(@Body body: LoginRequest): AuthResponseDto
+    suspend fun login(
+        @Body body: LoginRequest
+    ): AuthResponseDto
 
     @POST("v1/auth/register")
-    suspend fun register(@Body body: RegisterRequest): AuthResponseDto
+    suspend fun register(
+        @Body body: RegisterRequest
+    ): AuthResponseDto
 
     @GET("v1/me/favorites")
     suspend fun favorites(): AnimeListDto
 
     @POST("v1/me/favorites/{animeId}")
-    suspend fun addFavorite(@Path("animeId") animeId: String)
+    suspend fun addFavorite(
+        @Path("animeId") animeId: String
+    )
 
     @DELETE("v1/me/favorites/{animeId}")
-    suspend fun removeFavorite(@Path("animeId") animeId: String)
+    suspend fun removeFavorite(
+        @Path("animeId") animeId: String
+    )
 
     @GET("v1/me/history/continue-watching")
     suspend fun continueWatching(): HistoryListDto
@@ -88,26 +107,34 @@ data class AnimeDto(
     val mal_id: Int? = null,
     val imdb_id: String? = null,
     val kitsu_id: String? = null,
+
     val title: String,
     val romaji_title: String? = null,
     val native_title: String? = null,
+
     val synopsis: String = "",
+
     val poster: String = "",
     val banner: String = "",
     val backdrop: String? = null,
 
-    // CORRIGIDO:
-    // A API envia objetos { id, name }
+    // A API retorna gêneros como objetos:
+    // [{"id": 1, "name": "Action"}]
     val genres: List<Genre> = emptyList(),
 
     val year: Int = 0,
     val status: String = "UNKNOWN",
     val type: String = "TV",
+
     val rating: Double = 0.0,
     val rating_score_count: Int? = null,
+
     val age_rating: String = "14+",
+
     val studios: List<String> = emptyList(),
+
     val total_episodes: Int = 0,
+
     val seasons: List<SeasonDto> = emptyList()
 )
 
