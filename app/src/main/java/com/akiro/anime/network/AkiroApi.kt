@@ -1,5 +1,6 @@
 package com.akiro.anime.network
 
+import com.akiro.anime.data.model.Genre
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -27,10 +28,15 @@ interface AkiroApi {
     suspend fun getAnime(@Path("id") id: Int): AnimeDto
 
     @GET("v1/animes/{animeId}/seasons/{season}/episodes")
-    suspend fun getEpisodes(@Path("animeId") animeId: Int, @Path("season") season: Int): EpisodeListDto
+    suspend fun getEpisodes(
+        @Path("animeId") animeId: Int,
+        @Path("season") season: Int
+    ): EpisodeListDto
 
     @GET("v1/episodes/{episodeId}/sources")
-    suspend fun getSources(@Path("episodeId") episodeId: String): SourceListDto
+    suspend fun getSources(
+        @Path("episodeId") episodeId: String
+    ): SourceListDto
 
     @POST("v1/auth/login")
     suspend fun login(@Body body: LoginRequest): AuthResponseDto
@@ -51,13 +57,30 @@ interface AkiroApi {
     suspend fun continueWatching(): HistoryListDto
 
     @POST("v1/me/history")
-    suspend fun saveHistory(@Body body: HistoryRequest)
+    suspend fun saveHistory(
+        @Body body: HistoryRequest
+    )
 }
 
-data class AnimeListDto(val items: List<AnimeDto> = emptyList())
-data class HomeDto(val featured: List<AnimeDto> = emptyList(), val trending: List<AnimeDto> = emptyList(), val popular: List<AnimeDto> = emptyList(), val recent: List<AnimeDto> = emptyList(), val simulcast: List<AnimeDto> = emptyList())
-data class EpisodeListDto(val items: List<EpisodeDto> = emptyList())
-data class SourceListDto(val items: List<SourceDto> = emptyList())
+data class AnimeListDto(
+    val items: List<AnimeDto> = emptyList()
+)
+
+data class HomeDto(
+    val featured: List<AnimeDto> = emptyList(),
+    val trending: List<AnimeDto> = emptyList(),
+    val popular: List<AnimeDto> = emptyList(),
+    val recent: List<AnimeDto> = emptyList(),
+    val simulcast: List<AnimeDto> = emptyList()
+)
+
+data class EpisodeListDto(
+    val items: List<EpisodeDto> = emptyList()
+)
+
+data class SourceListDto(
+    val items: List<SourceDto> = emptyList()
+)
 
 data class AnimeDto(
     val id: String,
@@ -72,7 +95,11 @@ data class AnimeDto(
     val poster: String = "",
     val banner: String = "",
     val backdrop: String? = null,
-    val genres: List<String> = emptyList(),
+
+    // CORRIGIDO:
+    // A API envia objetos { id, name }
+    val genres: List<Genre> = emptyList(),
+
     val year: Int = 0,
     val status: String = "UNKNOWN",
     val type: String = "TV",
@@ -84,14 +111,82 @@ data class AnimeDto(
     val seasons: List<SeasonDto> = emptyList()
 )
 
-data class SeasonDto(val season_number: Int, val name: String, val episode_count: Int = 0, val year: Int? = null)
-data class EpisodeDto(val id: String, val number: Int, val title: String, val thumbnail: String = "", val duration: Int = 0, val description: String? = null, val air_date: String? = null, val season_id: String? = null)
-data class SourceDto(val id: String, val provider: String, val name: String, val url: String, val type: String = "hls", val quality: String = "Auto", val language: String? = null, val subtitles: List<SubtitleDto> = emptyList(), val addonId: String? = null, val playableInBrowser: Boolean? = null)
-data class SubtitleDto(val id: String? = null, val lang: String = "", val label: String = "", val url: String? = null, val format: String? = null)
-data class LoginRequest(val email: String, val password: String)
-data class RegisterRequest(val email: String, val password: String, val displayName: String? = null)
-data class UserDto(val id: String, val email: String, val display_name: String? = null)
-data class AuthResponseDto(val user: UserDto, val token: String)
-data class HistoryRequest(val episodeId: String, val positionSeconds: Int, val durationSeconds: Int, val completed: Boolean)
-data class HistoryItemDto(val episode_id: String, val position_seconds: Int, val duration_seconds: Int, val completed: Boolean, val watched_at: String)
-data class HistoryListDto(val items: List<HistoryItemDto> = emptyList())
+data class SeasonDto(
+    val season_number: Int,
+    val name: String,
+    val episode_count: Int = 0,
+    val year: Int? = null
+)
+
+data class EpisodeDto(
+    val id: String,
+    val number: Int,
+    val title: String,
+    val thumbnail: String = "",
+    val duration: Int = 0,
+    val description: String? = null,
+    val air_date: String? = null,
+    val season_id: String? = null
+)
+
+data class SourceDto(
+    val id: String,
+    val provider: String,
+    val name: String,
+    val url: String,
+    val type: String = "hls",
+    val quality: String = "Auto",
+    val language: String? = null,
+    val subtitles: List<SubtitleDto> = emptyList(),
+    val addonId: String? = null,
+    val playableInBrowser: Boolean? = null
+)
+
+data class SubtitleDto(
+    val id: String? = null,
+    val lang: String = "",
+    val label: String = "",
+    val url: String? = null,
+    val format: String? = null
+)
+
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val displayName: String? = null
+)
+
+data class UserDto(
+    val id: String,
+    val email: String,
+    val display_name: String? = null
+)
+
+data class AuthResponseDto(
+    val user: UserDto,
+    val token: String
+)
+
+data class HistoryRequest(
+    val episodeId: String,
+    val positionSeconds: Int,
+    val durationSeconds: Int,
+    val completed: Boolean
+)
+
+data class HistoryItemDto(
+    val episode_id: String,
+    val position_seconds: Int,
+    val duration_seconds: Int,
+    val completed: Boolean,
+    val watched_at: String
+)
+
+data class HistoryListDto(
+    val items: List<HistoryItemDto> = emptyList()
+)
